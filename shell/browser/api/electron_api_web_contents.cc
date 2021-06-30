@@ -1258,6 +1258,11 @@ void WebContents::OnEnterFullscreenModeForTab(
   SetHtmlApiFullscreen(true);
   owner_window_->NotifyWindowEnterHtmlFullScreen();
 
+  // The embedder WebContents is spearated from the frame tree of webview, so
+  // we must manually update its fullscreen state.
+  if (embedder_)
+    embedder_->SetHtmlApiFullscreen(true);
+
   if (native_fullscreen_) {
     // Explicitly trigger a view resize, as the size is not actually changing if
     // the browser is fullscreened, too.
@@ -1271,6 +1276,11 @@ void WebContents::ExitFullscreenModeForTab(content::WebContents* source) {
     return;
   SetHtmlApiFullscreen(false);
   owner_window_->NotifyWindowLeaveHtmlFullScreen();
+
+  // The embedder WebContents is spearated from the frame tree of webview, so
+  // we must manually update its fullscreen state.
+  if (embedder_)
+    embedder_->SetHtmlApiFullscreen(false);
 
   if (native_fullscreen_) {
     // Explicitly trigger a view resize, as the size is not actually changing if

@@ -378,6 +378,29 @@ describe('<webview> tag', function () {
     });
   });
 
+  describe('requestFullscreen from webview', () => {
+    it('should make parent frame element fullscreen too', async () => {
+      const w = new BrowserWindow({
+        webPreferences: {
+          webviewTag: true,
+          nodeIntegration: true,
+          contextIsolation: false
+        }
+      });
+      const attachPromise = emittedOnce(w.webContents, 'did-attach-webview');
+      const readyPromise = emittedOnce(ipcMain, 'webview-ready');
+      w.loadFile(path.join(__dirname, 'fixtures', 'webview', 'fullscreen', 'main.html'));
+      const [, webview] = await attachPromise;
+      await readyPromise;
+      expect(await w.webContents.executeJavaScript('isIframeFullscreen()')).to.be.false();
+
+      const fullscreenPromise = emittedOnce(ipcMain, 'fullscreenchange');
+      await webview.executeJavaScript('document.getElementById("div").requestFullscreen()', true);
+      await fullscreenPromise;
+      expect(await w.webContents.executeJavaScript('isIframeFullscreen()')).to.be.true();
+    });
+  });
+
   describe('nativeWindowOpen option', () => {
     let w: BrowserWindow;
     beforeEach(async () => {
